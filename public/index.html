@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f7f4" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="纪念簿" />
+    <title>纪念簿 - 纪念日提醒</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/app-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Serif+SC:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css?v=8" />
+  </head>
+  <body>
+    <div id="pull-refresh" class="pull-refresh" aria-hidden="true">
+      <span class="pull-refresh-icon">↻</span>
+      <span id="pull-refresh-label">下拉刷新</span>
+    </div>
+    <section id="login-screen" class="login-screen" aria-labelledby="login-title">
+      <div class="login-brand">
+        <span class="brand-mark"><span></span><span></span><span></span></span>
+        <span>纪念簿</span>
+      </div>
+      <div class="login-layout">
+        <div class="login-intro">
+          <p class="eyebrow">属于你的纪念空间</p>
+          <h1 id="login-title">先告诉我<br />该如何称呼你</h1>
+          <p>每个名字都有一份独立的日子清单。</p>
+        </div>
+        <form id="login-form" class="login-form">
+          <label for="username">用户名</label>
+          <input id="username" name="username" maxlength="32" autocomplete="username" placeholder="输入你的名字" required />
+          <button id="login-button" class="primary-button" type="submit">进入纪念簿 <span>→</span></button>
+          <p>第一次使用会自动创建，无需密码。</p>
+        </form>
+      </div>
+      <div class="login-ornament" aria-hidden="true">
+        <span class="ornament-date" id="login-calendar-day">20</span>
+        <span class="ornament-line"></span>
+      </div>
+    </section>
+
+    <div id="app-shell" class="app-shell auth-hidden">
+      <aside class="sidebar">
+        <a class="brand" href="#top" aria-label="纪念簿首页">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>纪念簿</span>
+        </a>
+        <nav class="side-nav" aria-label="主导航">
+          <a class="active" href="#top"><span class="nav-glyph">◐</span>纪念日</a>
+          <a href="#settings"><span class="nav-glyph">◌</span>提醒设置</a>
+        </nav>
+        <div class="sidebar-account">
+          <span><small>当前用户</small><strong id="current-username">-</strong></span>
+          <button id="logout-button" type="button">切换</button>
+        </div>
+        <div class="sidebar-bottom">
+          <div class="local-status"><span class="status-dot"></span>数据保存在本机</div>
+          <p>纪念不必盛大<br />只要被好好记住</p>
+        </div>
+      </aside>
+
+      <main id="top" class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="today-label">今日</p>
+            <h1>值得被记住的日子</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="push-action">
+              <button class="notification-button" id="notification-button" type="button" aria-pressed="false">
+                <span class="notification-indicator"></span><span id="notification-label">开启系统通知</span>
+              </button>
+              <button class="notification-off-button is-hidden" id="disable-notification-button" type="button" aria-label="关闭系统通知" title="关闭系统通知">×</button>
+            </div>
+            <button class="primary-button" id="create-button" type="button"><span>＋</span>新建纪念日</button>
+          </div>
+        </header>
+
+        <section class="overview" aria-label="提醒概览">
+          <div class="hero-copy">
+            <p class="eyebrow">最近的纪念日</p>
+            <div id="spotlight" class="spotlight" aria-live="polite"></div>
+            <p class="hero-note">提前安排好心意，让重要时刻从容抵达。</p>
+          </div>
+          <div class="calendar-art" aria-hidden="true">
+            <div class="calendar-shadow"></div>
+            <div class="calendar-page">
+              <div class="calendar-top"><span></span><span></span></div>
+              <span class="calendar-month">JUL</span>
+              <strong id="calendar-day">19</strong>
+              <span class="calendar-line"></span><span class="calendar-line short"></span>
+            </div>
+            <div class="sun-disc"></div>
+            <span class="leaf leaf-one"></span><span class="leaf leaf-two"></span><span class="leaf leaf-three"></span>
+          </div>
+        </section>
+
+        <section class="summary-grid" aria-label="统计信息">
+          <article>
+            <span class="summary-label">全部纪念日</span>
+            <strong id="total-count">0</strong>
+            <span class="summary-foot">正在被悉心记录</span>
+          </article>
+          <article>
+            <span class="summary-label">本月待提醒</span>
+            <strong id="month-count">0</strong>
+            <span class="summary-foot">提前规划，不留遗憾</span>
+          </article>
+          <article>
+            <span class="summary-label">机器人状态</span>
+            <strong id="webhook-count">0</strong>
+            <span class="summary-foot">已连接企业微信</span>
+          </article>
+        </section>
+
+        <section class="list-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">日子清单</p>
+              <h2>我的纪念日</h2>
+            </div>
+            <div class="view-switch" aria-label="筛选纪念日">
+              <button type="button" class="active" data-filter="all">全部</button>
+              <button type="button" data-filter="countdown">倒计时</button>
+              <button type="button" data-filter="elapsed">总天数</button>
+            </div>
+          </div>
+          <div id="anniversary-list" class="anniversary-list" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="anniversary-dialog" class="dialog">
+      <form id="anniversary-form" method="dialog">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">编辑你的纪念</p>
+            <h2 id="dialog-title">新建纪念日</h2>
+          </div>
+          <button class="icon-button close-button" type="button" id="close-dialog" aria-label="关闭">×</button>
+        </div>
+        <div class="dialog-body">
+        <input id="editing-id" type="hidden" />
+
+        <div class="form-section">
+          <label for="title">纪念日名称</label>
+          <input id="title" name="title" maxlength="50" placeholder="例如：和小满相识的第 1000 天" required />
+        </div>
+
+        <div class="form-grid">
+          <div class="form-section">
+            <label>计算方式</label>
+            <div class="segmented-control" id="mode-control">
+              <button type="button" class="active" data-mode="countdown">倒计时</button>
+              <button type="button" data-mode="elapsed">总天数</button>
+            </div>
+            <input id="mode" type="hidden" value="countdown" />
+          </div>
+          <div class="form-section">
+            <label>日期类型</label>
+            <div class="segmented-control" id="calendar-type-control">
+              <button type="button" class="active" data-calendar-type="solar">公历</button>
+              <button type="button" data-calendar-type="lunar">农历</button>
+            </div>
+            <input id="calendar-type" type="hidden" value="solar" />
+          </div>
+        </div>
+
+        <div id="solar-date-fields" class="form-section">
+          <label id="date-label" for="event-date">目标日期</label>
+          <input id="event-date" name="event-date" type="date" required />
+        </div>
+
+        <div id="lunar-date-fields" class="form-section is-hidden">
+          <label id="lunar-date-label">目标农历日期</label>
+          <div class="lunar-date-picker" role="group" aria-labelledby="lunar-date-label">
+            <select id="lunar-year" aria-label="农历年份" required></select>
+            <select id="lunar-month" aria-label="农历月份" required></select>
+            <select id="lunar-day" aria-label="农历日期" required></select>
+          </div>
+          <p id="lunar-solar-preview" class="lunar-solar-preview" aria-live="polite"></p>
+        </div>
+
+        <div class="form-section">
+          <label id="event-time-label">纪念时间</label>
+          <div class="event-time-picker" role="group" aria-labelledby="event-time-label">
+            <label>
+              <span class="sr-only">小时</span>
+              <input id="event-hour" type="number" inputmode="numeric" min="0" max="23" step="1" value="00" required />
+              <span>时</span>
+            </label>
+            <label>
+              <span class="sr-only">分钟</span>
+              <input id="event-minute" type="number" inputmode="numeric" min="0" max="59" step="1" value="00" required />
+              <span>分</span>
+            </label>
+            <label>
+              <span class="sr-only">秒</span>
+              <input id="event-second" type="number" inputmode="numeric" min="0" max="59" step="1" value="00" required />
+              <span>秒</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section countdown-only">
+          <label>重复周期</label>
+          <div class="segmented-control repeat-control" id="repeat-rule-control">
+            <button type="button" class="active" data-repeat-rule="once">仅一次</button>
+            <button type="button" data-repeat-rule="yearly">每年</button>
+            <button type="button" data-repeat-rule="monthly">每月</button>
+            <button type="button" data-repeat-rule="daily">每日</button>
+          </div>
+          <input id="repeat-rule" type="hidden" value="once" />
+        </div>
+
+        <div class="form-section color-section">
+          <label>标记颜色</label>
+          <div class="color-options" id="color-options">
+            <button type="button" class="color-option active" data-color="#EF6E5B" style="--swatch:#EF6E5B" aria-label="珊瑚红"></button>
+            <button type="button" class="color-option" data-color="#DA7E9B" style="--swatch:#DA7E9B" aria-label="玫瑰粉"></button>
+            <button type="button" class="color-option" data-color="#C79B45" style="--swatch:#C79B45" aria-label="琥珀金"></button>
+            <button type="button" class="color-option" data-color="#4D9C91" style="--swatch:#4D9C91" aria-label="青绿色"></button>
+            <button type="button" class="color-option" data-color="#6885B8" style="--swatch:#6885B8" aria-label="雾蓝色"></button>
+          </div>
+          <input id="accent" type="hidden" value="#EF6E5B" />
+        </div>
+
+        <section id="settings" class="reminder-section">
+          <div class="reminder-heading">
+            <div>
+              <h3>提醒设置</h3>
+              <p>到点后由企业微信机器人发送消息</p>
+            </div>
+            <label class="switch"><input id="reminder-enabled" type="checkbox" checked /><span></span></label>
+          </div>
+          <div id="reminder-fields" class="reminder-fields">
+            <div class="channel-options">
+              <div class="channel-option">
+                <span class="channel-icon system-channel">N</span>
+                <span><strong>系统通知</strong><small>发送到已开启通知的手机和电脑</small></span>
+                <label class="switch"><input id="web-push-enabled" type="checkbox" checked /><span></span></label>
+              </div>
+              <div class="channel-option">
+                <span class="channel-icon wecom-channel">W</span>
+                <span><strong>企业微信</strong><small>填写下方 Webhook 后同步发送</small></span>
+              </div>
+            </div>
+            <div class="form-grid three-columns">
+              <div class="form-section countdown-only">
+                <label for="advance-days">提前提醒</label>
+                <div class="input-suffix"><input id="advance-days" type="number" min="0" max="3650" value="7" /><span>天</span></div>
+              </div>
+              <div class="form-section">
+                <label for="reminder-time">提醒时间</label>
+                <input id="reminder-time" type="time" value="09:00" />
+              </div>
+              <div class="form-section">
+                <label>消息频率</label>
+                <div class="segmented-control compact" id="reminder-type-control">
+                  <button type="button" class="active" data-reminder-type="daily">每天发送</button>
+                  <button type="button" data-reminder-type="times">限次发送</button>
+                </div>
+                <input id="reminder-type" type="hidden" value="daily" />
+              </div>
+            </div>
+            <div class="form-section max-reminders-field is-hidden">
+              <label for="max-reminders">总提醒次数</label>
+              <div class="input-suffix"><input id="max-reminders" type="number" min="1" max="3650" value="3" /><span>次</span></div>
+            </div>
+            <div class="form-section">
+              <label for="webhook-url">企业微信机器人 Webhook</label>
+              <input id="webhook-url" type="url" inputmode="url" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=..." />
+              <p class="field-hint">在企业微信群中添加机器人后，粘贴其 Webhook 地址。</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="form-section">
+          <label for="note">备注</label>
+          <textarea id="note" maxlength="240" rows="2" placeholder="给未来的自己留一句话"></textarea>
+        </div>
+        </div>
+        <div class="dialog-actions">
+          <button id="delete-button" class="text-button danger is-hidden" type="button">删除纪念日</button>
+          <button id="test-webhook-button" class="text-button is-hidden" type="button">测试机器人</button>
+          <span></span>
+          <button class="secondary-button" id="cancel-button" type="button">取消</button>
+          <button class="primary-button" type="submit">保存纪念日</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status"></div>
+    <script src="/app.js?v=8"></script>
+  </body>
+</html>

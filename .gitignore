@@ -1,0 +1,17 @@
+# Runtime data and private key material
+anniversaries.db
+encrypted.data
+vapid_private.pem
+.env
+.env.*
+
+# Python-generated files and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editor and operating-system metadata
+.idea/
+.vscode/
+.DS_Store
