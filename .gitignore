@@ -1,15 +1,21 @@
 # Runtime data and private key material
 anniversaries.db
+anniversary-data.sql
 encrypted.data
 vapid_private.pem
 .env
 .env.*
+.dev.vars
+.wrangler/
+.agents/
+.codex/
 
 # Python-generated files and local environments
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+node_modules/
 
 # Editor and operating-system metadata
 .idea/

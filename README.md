@@ -1,31 +1,77 @@
 # 纪念簿
 
-本地运行的纪念日提醒 H5 页面，数据保存在同目录的 SQLite 文件 `anniversaries.db`。
+纪念日提醒 PWA。生产版本运行在 Cloudflare Workers，静态资源由 Workers Assets 托管，数据保存在 D1，定时提醒由 Cron Trigger 每分钟执行。
 
-```powershell
+功能包括：用户名会话、按用户隔离数据、公历/农历纪念日、一次/每年/每月/每日重复、倒计时与累计天数、企业微信机器人通知、标准 Web Push 和 PWA 离线外壳。
+
+## Cloudflare 部署
+
+环境要求：Node.js 20+、Cloudflare 账号和 Wrangler 登录状态。
+
+```bash
+npm install
+npx wrangler login
+npx wrangler d1 create anniversary
+```
+
+将创建命令返回的 `database_id` 写入 `wrangler.jsonc`，替换 `REPLACE_WITH_D1_DATABASE_ID`，然后执行：
+
+```bash
+npm run db:migrate:remote
+npm run vapid:secret
+npm run deploy
+```
+
+`npm run vapid:secret` 会读取本地 `vapid_private.pem`，只将私钥标量上传到 Cloudflare Secret。该文件和生成的数据导出文件均被 `.gitignore` 排除。`wrangler.jsonc` 中已经配置了与该私钥匹配的公开 VAPID 公钥，因此原域名切换到 Worker 时可以继续使用已有订阅。
+
+默认 Worker 地址为 `https://anniversary.<你的子域>.workers.dev`。也可以在 Cloudflare 控制台的 Worker `Settings > Domains & Routes` 中绑定自定义域名。
+
+## 迁移现有数据
+
+先生成不包含表结构的 D1 数据文件：
+
+```bash
+npm run db:export
+npx wrangler d1 execute anniversary --remote --file anniversary-data.sql
+```
+
+数据文件可能包含用户名、会话摘要、Webhook 和浏览器 Push 订阅，不要提交到 Git。若部署域名发生变化，浏览器的现有 Push 订阅通常需要用户在新域名重新开启通知。
+
+## 本地开发
+
+```bash
+npm run vapid:dev
+npm run db:migrate:local
+npm run dev
+```
+
+访问 Wrangler 输出的本地地址。测试与构建检查：
+
+```bash
+npm test
+npm run typecheck
+npx wrangler deploy --dry-run
+```
+
+新版 `workerd` 需要较新的 glibc；若旧 Linux 服务器无法启动 `wrangler dev`，可在现代开发机、容器或 GitHub Actions 中进行本地运行和部署。
+
+## 配置
+
+`wrangler.jsonc` 中包含以下非敏感变量：
+
+- `APP_TIMEZONE`：业务日期和提醒时间使用的 IANA 时区，默认 `Asia/Shanghai`
+- `VAPID_SUBJECT`：Web Push VAPID 联系地址
+- `VAPID_PUBLIC_KEY`：允许公开的 P-256 公钥
+
+敏感变量 `VAPID_PRIVATE_KEY` 必须通过 `wrangler secret put` 设置，不能写入配置文件。
+
+当前登录仅按用户名创建会话，没有密码，不适合直接作为多用户公网身份系统。公开部署前应增加访问码，或在 Worker 前启用 Cloudflare Access。
+
+## 旧版 Python 服务
+
+`server.py` 和 `requirements.txt` 暂时保留，仍可使用本地 SQLite 运行旧版：
+
+```bash
 pip install -r requirements.txt
 python server.py
 ```
-
-打开 `http://127.0.0.1:5178`。
-
-功能包括：用户名自动创建与 token 会话、按用户隔离数据和推送配置、公历/农历纪念日、仅一次/每年/每月/每日重复、秒级倒计时/纪念总时长、提前提醒、每日或限次提醒、企业微信机器人 Webhook 推送与本地 SQLite 持久化。
-
-升级前已有的示例数据归属在用户名 `默认用户` 下。用户名登录没有密码，只用于本地数据分区，不应视为强身份认证。
-
-## PWA 系统通知
-
-首次启动会在项目根目录生成 `vapid_private.pem`。该文件是 Web Push 身份密钥，部署后必须备份并长期保留；更换或丢失后，已经订阅通知的设备需要重新开启通知。
-
-iOS 16.4 及以上需要使用 Safari 将 HTTPS 页面添加到主屏幕，再从桌面图标进入并点击“开启系统通知”。普通局域网 HTTP 地址不能申请 Web Push 权限。
-
-生产部署建议由 Caddy 或 Nginx 提供 HTTPS，并反向代理到本服务。监听参数可以通过环境变量配置：
-
-```powershell
-$env:APP_HOST = "0.0.0.0"
-$env:APP_PORT = "5178"
-$env:VAPID_SUBJECT = "mailto:your-email@example.com"
-python server.py
-```
-
-页面开放到公网前，应给用户名登录增加密码、一次性访问码或设备绑定机制。

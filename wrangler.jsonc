@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "anniversary",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-08-01",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "anniversary",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "vars": {
+    "APP_TIMEZONE": "Asia/Shanghai",
+    "VAPID_SUBJECT": "mailto:308813252@qq.com",
+    "VAPID_PUBLIC_KEY": "BFw7xWFVKQzwOGOnu-52zi47RqDLjhPohp-Yt8GThxj-hKF2AP7vdAMxaujYSrk4o_RQeFC-8qKt9CxCrgQ9o7I"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

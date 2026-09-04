@@ -1,0 +1,27 @@
+{
+  "name": "anniversary-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply anniversary --local",
+    "db:migrate:remote": "wrangler d1 migrations apply anniversary --remote",
+    "db:export": "python3 scripts/export-d1.py",
+    "vapid:public": "node scripts/vapid-key.mjs --public",
+    "vapid:dev": "node scripts/vapid-key.mjs --dev",
+    "vapid:secret": "node scripts/vapid-key.mjs"
+  },
+  "dependencies": {
+    "lunar-typescript": "^1.8.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.34.0"
+  }
+}
