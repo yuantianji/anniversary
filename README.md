@@ -11,15 +11,15 @@
 ```bash
 npm install
 npx wrangler login
-npx wrangler d1 create anniversary
+npm run deploy
 ```
 
-将创建命令返回的 `database_id` 写入 `wrangler.jsonc`，替换 `REPLACE_WITH_D1_DATABASE_ID`，然后执行：
+首次部署时，Wrangler 会根据 `DB` binding 自动创建名为 `anniversary` 的 D1 数据库、建立连接，并将资源 ID 回写到本地配置。部署脚本随后自动执行 D1 migration。
+
+最后上传 Web Push 私钥：
 
 ```bash
-npm run db:migrate:remote
 npm run vapid:secret
-npm run deploy
 ```
 
 `npm run vapid:secret` 会读取本地 `vapid_private.pem`，只将私钥标量上传到 Cloudflare Secret。该文件和生成的数据导出文件均被 `.gitignore` 排除。`wrangler.jsonc` 中已经配置了与该私钥匹配的公开 VAPID 公钥，因此原域名切换到 Worker 时可以继续使用已有订阅。
