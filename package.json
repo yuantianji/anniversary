@@ -13,7 +13,8 @@
     "db:export": "python3 scripts/export-d1.py",
     "vapid:public": "node scripts/vapid-key.mjs --public",
     "vapid:dev": "node scripts/vapid-key.mjs --dev",
-    "vapid:secret": "node scripts/vapid-key.mjs"
+    "vapid:secret": "node scripts/vapid-key.mjs",
+    "vapid:secret:version": "node scripts/vapid-key.mjs --versioned"
   },
   "dependencies": {
     "lunar-typescript": "^1.8.6"

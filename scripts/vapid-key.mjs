@@ -21,7 +21,10 @@ if (process.argv.includes("--dev")) {
 }
 
 const executable = process.platform === "win32" ? "npx.cmd" : "npx";
-const result = spawnSync(executable, ["wrangler", "secret", "put", "VAPID_PRIVATE_KEY"], {
+const secretCommand = process.argv.includes("--versioned")
+  ? ["wrangler", "versions", "secret", "put", "VAPID_PRIVATE_KEY"]
+  : ["wrangler", "secret", "put", "VAPID_PRIVATE_KEY"];
+const result = spawnSync(executable, secretCommand, {
   input: `${privateJwk.d}\n`, stdio: ["pipe", "inherit", "inherit"],
 });
 if (result.status !== 0) process.exit(result.status ?? 1);

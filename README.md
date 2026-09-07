@@ -24,6 +24,8 @@ npm run vapid:secret
 
 `npm run vapid:secret` 会读取本地 `vapid_private.pem`，只将私钥标量上传到 Cloudflare Secret。该文件和生成的数据导出文件均被 `.gitignore` 排除。`wrangler.jsonc` 中已经配置了与该私钥匹配的公开 VAPID 公钥，因此原域名切换到 Worker 时可以继续使用已有订阅。
 
+若 GitHub 部署使用 Worker Versions，且普通 Secret 命令提示最新版本尚未部署，可执行 `npm run vapid:secret:version` 创建带 Secret 的新版本，再通过 Cloudflare 后台或 `npx wrangler versions deploy` 将该版本切换到生产流量。
+
 默认 Worker 地址为 `https://anniversary.<你的子域>.workers.dev`。也可以在 Cloudflare 控制台的 Worker `Settings > Domains & Routes` 中绑定自定义域名。
 
 ## 迁移现有数据
